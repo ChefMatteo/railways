@@ -1,0 +1,4 @@
+{"bedType":"sint","nBeds":0,"id":"4","trainId":"dolor eu officia","wagonClass":"ECONOMY","length":-3.39342119914563E7,"width":-7.742131355138978E7,"height":7.116858513767058E7,"bathroom":false,"wagonType":"BED"}
+{"bedType":"sint","nBeds":10071152,"id":"6","trainId":"disconnected","wagonClass":"ECONOMY","length":-3.39342119914563E7,"width":-7.742131355138978E7,"height":7.116858513767058E7,"bathroom":false,"wagonType":"BED"}
+{"fuelType":"DIESEL","id":"2","trainId":"disconnected","wagonClass":"ECONOMY","length":-3.39342119914563E7,"width":-7.742131355138978E7,"height":7.116858513767058E7,"bathroom":false,"wagonType":"MOTOR"}
+{"bedType":"sint","nBeds":10071152,"id":"1","trainId":"disconnected","wagonClass":"ECONOMY","length":-3.39342119914563E7,"width":-7.742131355138978E7,"height":7.116858513767058E7,"bathroom":false,"wagonType":"BED"}

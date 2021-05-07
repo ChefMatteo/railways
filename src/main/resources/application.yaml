@@ -1,0 +1,39 @@
+spring:
+  config:
+    activate:
+      on-profile: dev, default
+
+uni-prisma:
+  default-page-limit: 10
+  max-page-limit: 10000
+  dataPath: "src/main/resources/data"
+
+server:
+  port: 8081
+  error:
+    include-stacktrace: never
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+
+uni-prisma:
+  default-page-limit: 10
+  max-page-limit: 100
+
+server:
+  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+uni-prisma:
+  default-page-limit: 10
+  max-page-limit: 100
+  dataPath: "data"
+
+server:
+  port: 8080
