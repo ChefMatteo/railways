@@ -13,7 +13,6 @@ import it.uniprisma.exercise4dot2.models.wagon.Wagon;
 import it.uniprisma.exercise4dot2.models.wagon.enums.FuelType;
 import it.uniprisma.exercise4dot2.models.wagon.enums.WagonClass;
 import it.uniprisma.exercise4dot2.models.wagon.enums.WagonType;
-import it.uniprisma.exercise4dot2.services.RouteService;
 import it.uniprisma.exercise4dot2.services.TrainService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -24,9 +23,9 @@ import java.util.Collections;
 @RequestMapping("api/trains")
 public class TrainController {
 
-    private static TrainService trainService;
+    private final TrainService trainService;
 
-    public TrainController(TrainService trainService, RouteService routeService) {
+    public TrainController(TrainService trainService) {
         this.trainService = trainService;
     }
 
