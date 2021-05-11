@@ -9,14 +9,16 @@ import it.uniprisma.exercise4dot2.models.PagedResponse;
 import it.uniprisma.exercise4dot2.models.Route;
 import it.uniprisma.exercise4dot2.models.train.Train;
 import it.uniprisma.exercise4dot2.models.train.TrainType;
-import it.uniprisma.exercise4dot2.models.wagon.enums.FuelType;
 import it.uniprisma.exercise4dot2.models.wagon.Wagon;
+import it.uniprisma.exercise4dot2.models.wagon.enums.FuelType;
 import it.uniprisma.exercise4dot2.models.wagon.enums.WagonClass;
 import it.uniprisma.exercise4dot2.models.wagon.enums.WagonType;
 import it.uniprisma.exercise4dot2.services.RouteService;
 import it.uniprisma.exercise4dot2.services.TrainService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 @RestController
 @RequestMapping("api/trains")
@@ -151,7 +153,7 @@ public class TrainController {
     @DeleteMapping("/{trainId}/routes/{routeId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTrainRouteAssociation(@PathVariable("trainId") String trainId, @PathVariable("routeId") String routeId) {
-         trainService.deleteTrainRouteAssociation(trainId, routeId);
+         trainService.deleteTrainRouteAssociation(Collections.singletonList(trainId), Collections.singletonList(routeId));
     }
 
     @Operation(summary = "Add or rewrite a new association between wagon and train")
@@ -173,7 +175,7 @@ public class TrainController {
     @DeleteMapping("/{trainId}/wagon/{wagonId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTrainWagonAssociation(@PathVariable("trainId") String trainId, @PathVariable("wagonId") String wagonId) {
-         trainService.deleteTrainWagonAssociation(trainId, wagonId);
+         trainService.deleteTrainWagonAssociation(Collections.singletonList(trainId), Collections.singletonList(wagonId));
     }
 
 

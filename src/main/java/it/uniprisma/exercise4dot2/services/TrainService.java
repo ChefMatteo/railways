@@ -19,30 +19,35 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 @Slf4j
 public class TrainService extends BaseService<Train> {
     public static Resource trainResource;
-    @Autowired
     private RouteService routeService;
-    @Autowired
     private WagonService wagonService;
 
     public TrainService(ConfigurationComponent configurationComponent,
-                        Gson gson, RouteService routeService, WagonService wagonService) {
+                        Gson gson) {
         super.config = configurationComponent;
         super.gson = gson;
+    }
+
+    @Autowired
+    public void setRouteService(RouteService routeService){
         this.routeService = routeService;
+    }
+    @Autowired
+    public void setWagonService(WagonService wagonService){
         this.wagonService = wagonService;
     }
 
-
     @SneakyThrows
     @PostConstruct
-    private void initTrain() {
-        trainResource = init(Train.class, "/train.json", list);
+    public void initTrain() {
+        trainResource = init(Train.class, "/train.json");
     }
 
     public PagedResponse<Train> findTrains(String companyName, TrainType trainType, Integer offset, Integer limit) {
@@ -76,6 +81,7 @@ public class TrainService extends BaseService<Train> {
 
     @SneakyThrows
     public void deleteTrain(String trainId) {
+        deleteTrainRouteAssociation(Arrays.asList(trainId), getSingleTrain(trainId).getRoutesId());
         deleteSingle(trainId, trainResource);
     }
 
@@ -171,13 +177,11 @@ public class TrainService extends BaseService<Train> {
     }
 
     @SneakyThrows
-    public void deleteTrainRouteAssociation(String trainId, String routeId) {
-        if(getSingleTrain(trainId).getRoutesId().contains(routeId) &&
-            routeService.getSingleRoute(routeId).getTrainsId().contains(trainId)){
-            getSingleTrain(trainId).getRoutesId().remove(routeId);
-            routeService.getSingleRoute(routeId).getTrainsId().remove(trainId);
-            updateSingleTrain(trainId, getSingleTrain(trainId));
-            routeService.updateSingleRoute(routeId, routeService.getSingleRoute(routeId));
+    public void deleteTrainRouteAssociation(List<String> trainIds, List<String> routeIds) {
+        if(trainIds.stream().anyMatch(tId->getSingleTrain(tId).getRoutesId().retainAll(routeIds)) &&
+            routeIds.stream().anyMatch(rId->routeService.getSingleRoute(rId).getTrainsId().retainAll(trainIds))){
+            updateJson(trainResource);
+            routeService.updateJson(RouteService.routeResource);
         }
         else throw new BadRequestException("TrainId or routeId not valid");
     }
@@ -194,11 +198,12 @@ public class TrainService extends BaseService<Train> {
 
     }
 
-    public void deleteTrainWagonAssociation(String trainId, String wagonId) {
-        if(wagonService.getSingleWagon(wagonId).getTrainId().equalsIgnoreCase(trainId)){
-            wagonService.getSingleWagon(wagonId).setTrainId("disconnected");
-            wagonService.updateSingleWagon(wagonId, wagonService.getSingleWagon(wagonId));
+    public void deleteTrainWagonAssociation(List<String> trainIds, List<String> wagonIds) {
+        if(trainIds.stream().anyMatch(tId->getSingleTrain(tId).getRoutesId().retainAll(wagonIds)) &&
+                wagonIds.stream().anyMatch(wId->routeService.getSingleRoute(wId).getTrainsId().retainAll(trainIds))){
+            updateJson(trainResource);
+            wagonService.updateJson(WagonService.wagonResource);
         }
-        else throw new BadRequestException("TrainId not valid");
+        else throw new BadRequestException("TrainId or wagonId not valid");
     }
 }

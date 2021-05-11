@@ -2,11 +2,9 @@ package it.uniprisma.exercise4dot2.models.wagon;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
 public class BedWagon extends Wagon {
     private String bedType;
     private int nBeds;

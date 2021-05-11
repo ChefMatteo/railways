@@ -6,6 +6,7 @@ import it.uniprisma.exercise4dot2.models.PagedResponse;
 import it.uniprisma.exercise4dot2.models.Route;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Slf4j
 public class RouteService extends BaseService<Route>{
     public static Resource routeResource;
+    private TrainService trainService;
 
     public RouteService(ConfigurationComponent configurationComponent,
                         Gson gson) {
@@ -23,10 +25,15 @@ public class RouteService extends BaseService<Route>{
         super.gson = gson;
     }
 
+    @Autowired
+    public void setTrainService(TrainService trainService){
+        this.trainService = trainService;
+    }
+
     @SneakyThrows
     @PostConstruct
     private void initRoute() {
-        routeResource = init(Route.class, "/route.json", list);
+        routeResource = init(Route.class, "/route.json");
     }
 
 
@@ -69,6 +76,7 @@ public class RouteService extends BaseService<Route>{
         return updateSingle(route, routeId, routeResource);
     }
 
+    @SneakyThrows
     public void deleteRoute(String routeId) {
         deleteSingle(routeId, routeResource);
     }

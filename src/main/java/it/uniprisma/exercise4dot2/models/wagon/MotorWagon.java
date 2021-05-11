@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
 public class MotorWagon extends Wagon {
     private FuelType fuelType;
 

@@ -31,7 +31,7 @@ public abstract class BaseService<T> {
     protected Gson gson;
 
     @SneakyThrows
-    protected Resource init(Type obj, String pathFile, List<T> list) {
+    protected Resource init(Type obj, String pathFile) {
         if (!Files.exists(Paths.get(config.getDataPath())))
             Files.createDirectory(Paths.get(config.getDataPath()));
         try {
@@ -80,10 +80,7 @@ public abstract class BaseService<T> {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(id));
         list.remove(objToReturn);
-        String updatedList = list.stream()
-                .map(t -> gson.toJson(t))
-                .collect(Collectors.joining(System.lineSeparator()));
-        Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
+        updateJson(resource);
     }
 
     protected T updateSingle(T obj, String id, Resource resource) {
@@ -107,6 +104,13 @@ public abstract class BaseService<T> {
                 .findFirst().get();
     }
 
+    @SneakyThrows
+    protected void updateJson(Resource resource){
+        String updatedList = list.stream()
+                .map(t -> gson.toJson(t))
+                .collect(Collectors.joining(System.lineSeparator()));
+        Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
+    }
 
 
     protected PagedResponse<T> findPage(List<T> filteredList, Integer index, Integer limit) {
@@ -119,7 +123,7 @@ public abstract class BaseService<T> {
             if (start > filteredList.size() || start<0) {
                 throw new NotValidOffsetOrLimit("offset", index);
             }
-            throw new NotValidOffsetOrLimit("limit", index);
+            throw new NotValidOffsetOrLimit("limit", limit);
         } else if (end > filteredList.size()) {
             end = filteredList.size();
             pageContent = filteredList.subList(start, filteredList.size());
