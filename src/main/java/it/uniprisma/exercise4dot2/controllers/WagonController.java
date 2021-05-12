@@ -28,7 +28,7 @@ public class WagonController {
             @ApiResponse(responseCode = "201", description = "Created",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(allOf = Wagon.class, oneOf = {RestaurantWagon.class, PassengerWagon.class, BedWagon.class, MotorWagon.class}))}),
-            @ApiResponse(responseCode = "409", description = "Already exists a train with id in body")})
+            @ApiResponse(responseCode = "409", description = "Already exists a train with id in body", content = @Content)})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Wagon createTrain(@RequestBody AllOfWagon wagon) {
@@ -40,7 +40,7 @@ public class WagonController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = PagedResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad request")})
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content)})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public PagedResponse<Wagon> findWagonPage(@RequestParam(required = false) Boolean bathroom,
@@ -62,11 +62,11 @@ public class WagonController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Wagon"))}),
-            @ApiResponse(responseCode = "404", description = "No wagon to get")})
+            @ApiResponse(responseCode = "404", description = "No wagon to get", content = @Content)})
     @GetMapping("/{wagonId}")
     @ResponseStatus(HttpStatus.OK)
     public Wagon getSingleWagon(@PathVariable("wagonId") String wagonId ){
-        return wagonService.getSingleWagon(wagonId);
+        return wagonService.getSingle(wagonId);
     }
 
     @Operation(summary = "Update an existing wagon")
@@ -74,13 +74,13 @@ public class WagonController {
             @ApiResponse(responseCode = "200", description = "Wagon successfully updated",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Wagon"))}),
-            @ApiResponse(responseCode = "400", description = "Parameters not available for type of wagon in body"),
-            @ApiResponse(responseCode = "404", description = "No wagon to update")})
+            @ApiResponse(responseCode = "400", description = "Parameters not available for type of wagon in body", content = @Content),
+            @ApiResponse(responseCode = "404", description = "No wagon to update", content = @Content)})
     @PutMapping("/{wagonId}")
     @ResponseStatus(HttpStatus.OK)
     public Wagon updateSingleWagon(@PathVariable("wagonId") String wagonId,
                                    @RequestBody Wagon wagon){
-        return wagonService.updateSingleWagon(wagonId, wagon);
+        return wagonService.updateSingle(wagon, wagonId);
     }
 
     @Operation(summary = "Delete an existing wagon")
@@ -90,7 +90,7 @@ public class WagonController {
     @DeleteMapping("/{wagonId}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteWagon(@PathVariable("wagonId") String wagonId ){
-        wagonService.deleteWagon(wagonId);
+        wagonService.deleteSingle(wagonId);
     }
 
 }

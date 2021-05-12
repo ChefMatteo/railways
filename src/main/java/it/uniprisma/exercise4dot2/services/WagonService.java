@@ -7,10 +7,8 @@ import it.uniprisma.exercise4dot2.models.wagon.*;
 import it.uniprisma.exercise4dot2.models.wagon.enums.FuelType;
 import it.uniprisma.exercise4dot2.models.wagon.enums.WagonClass;
 import it.uniprisma.exercise4dot2.utils.BadRequestException;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
@@ -24,42 +22,37 @@ import java.util.stream.Stream;
 
 @Service
 @Slf4j
-//TODO all WagonService class
 public class WagonService extends BaseService<Wagon>{
-    public static Resource wagonResource;
 
     public WagonService(ConfigurationComponent configurationComponent,
                         Gson gson) {
         super.config = configurationComponent;
         super.gson = gson;
+        super.getterMethodOfPrimaryKey = "getId";
     }
 
 
-    @SneakyThrows
     @PostConstruct
     private void initWagon() {
-        if (!Files.exists(Paths.get(config.getDataPath())))
-            Files.createDirectory(Paths.get(config.getDataPath()));
         try {
+            if (!Files.exists(Paths.get(config.getDataPath()))) {
+                Files.createDirectory(Paths.get(config.getDataPath()));
+            }
             File file = new File(config.getDataPath() + "/wagon.json");
             file.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ResourceLoader rl = new DefaultResourceLoader();
-        wagonResource = rl.getResource("file:" + config.getDataPath() + "/wagon.json");
-        if (wagonResource.exists()) {
-            try {
-                Stream<String> lines = Files.lines(wagonResource.getFile().toPath());
+            ResourceLoader rl = new DefaultResourceLoader();
+            resource = rl.getResource("file:" + config.getDataPath() + "/wagon.json");
+            if (resource.exists()) {
+                Stream<String> lines = Files.lines(resource.getFile().toPath());
                 lines.forEach(l -> {
                     if (l.contains("MOTOR")) list.add(gson.fromJson(l, MotorWagon.class));
                     else if (l.contains("PASSENGER")) list.add(gson.fromJson(l, PassengerWagon.class));
                     else if (l.contains("BED")) list.add(gson.fromJson(l, BedWagon.class));
                     else if (l.contains("RESTAURANT")) list.add(gson.fromJson(l, RestaurantWagon.class));
                 });
-            } catch (IOException e) {
-                log.error("Error reading structures file with cause: {}", e.getMessage());
             }
+        } catch (IOException e) {
+            log.error("Error reading structures file with cause: {}", e.getMessage());
         }
     }
 
@@ -67,16 +60,16 @@ public class WagonService extends BaseService<Wagon>{
         if(w.getWagonType()!=null) {
             switch (w.getWagonType()) {
                 case BED -> {
-                    return createNew(new BedWagon(w), wagonResource);
+                    return createNew(new BedWagon(w));
                 }
                 case MOTOR -> {
-                    return createNew(new MotorWagon(w), wagonResource);
+                    return createNew(new MotorWagon(w));
                 }
                 case PASSENGER -> {
-                    return createNew(new PassengerWagon(w), wagonResource);
+                    return createNew(new PassengerWagon(w));
                 }
                 case RESTAURANT -> {
-                    return createNew(new RestaurantWagon(w), wagonResource);
+                    return createNew(new RestaurantWagon(w));
                 }
             }
         }
@@ -128,15 +121,5 @@ public class WagonService extends BaseService<Wagon>{
         return findPage(filtredList, offset, limit);
     }
 
-    public Wagon getSingleWagon(String wagonId) {
-        return getSingle(wagonId);
-    }
 
-    public Wagon updateSingleWagon(String wagonId, Wagon wagon) {
-        return updateSingle(wagon, wagonId, wagonResource);
-    }
-
-    public void deleteWagon(String wagonId) {
-        deleteSingle(wagonId, wagonResource);
-    }
 }

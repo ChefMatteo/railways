@@ -3,10 +3,9 @@ package it.uniprisma.exercise4dot2.services;
 import com.google.gson.Gson;
 import it.uniprisma.exercise4dot2.components.ConfigurationComponent;
 import it.uniprisma.exercise4dot2.models.PagedResponse;
+import it.uniprisma.exercise4dot2.utils.BadRequestException;
 import it.uniprisma.exercise4dot2.utils.ConflictException;
 import it.uniprisma.exercise4dot2.utils.NotFoundException;
-import it.uniprisma.exercise4dot2.utils.NotValidOffsetOrLimit;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -29,42 +28,46 @@ public abstract class BaseService<T> {
     protected ConfigurationComponent config;
     protected List<T> list = new ArrayList<>();
     protected Gson gson;
+    protected static Resource resource;
+    protected String getterMethodOfPrimaryKey;
 
-    @SneakyThrows
-    protected Resource init(Type obj, String pathFile) {
-        if (!Files.exists(Paths.get(config.getDataPath())))
-            Files.createDirectory(Paths.get(config.getDataPath()));
+
+    protected void init(Type obj, String pathFile) {
         try {
+            if (!Files.exists(Paths.get(config.getDataPath()))) {
+                Files.createDirectory(Paths.get(config.getDataPath()));
+            }
             File file = new File(config.getDataPath() + pathFile);
             file.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ResourceLoader rl = new DefaultResourceLoader();
-        Resource resource = rl.getResource("file:" + config.getDataPath() + pathFile);
-        if (resource.exists()) {
-            try {
+            ResourceLoader rl = new DefaultResourceLoader();
+            resource = rl.getResource("file:" + config.getDataPath() + pathFile);
+            if (resource.exists()) {
                 Stream<String> lines = Files.lines(resource.getFile().toPath());
                 lines.forEach(l -> list.add(gson.fromJson(l, obj)));
-            } catch (IOException e) {
-                log.error("Error reading structures file with cause: {}", e.getMessage());
+
             }
+        } catch (IOException e) {
+            log.error("Error reading structures file with cause: {}", e.getMessage());
+            e.printStackTrace();
         }
-        return resource;
     }
 
 
-    @SneakyThrows
-    protected T createNew(T obj, Resource resource) {
+
+    public T createNew(T obj) {
         if (!list.contains(obj)) {
             list.add(obj);
-            Files.writeString(resource.getFile().toPath(), gson.toJson(obj).concat(System.lineSeparator()), StandardOpenOption.APPEND);
+            try {
+                Files.writeString(resource.getFile().toPath(), gson.toJson(obj).concat(System.lineSeparator()), StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return obj;
         }
         throw new ConflictException("id", invokeGetMethod(obj).toString());
     }
 
-    protected T getSingle(String id) {
+    public T getSingle(String id) {
         return list.stream()
                 .filter(Objects::nonNull)
                 .filter(t -> invokeGetMethod(t).toString().equalsIgnoreCase(id))
@@ -72,46 +75,21 @@ public abstract class BaseService<T> {
                 .orElseThrow(() -> new NotFoundException(id));
     }
 
-    @SneakyThrows
-    protected void deleteSingle(String id, Resource resource) {
+    public void deleteSingle(String id) {
         T objToReturn = list.stream()
                 .filter(Objects::nonNull)
                 .filter(t -> invokeGetMethod(t).toString().equalsIgnoreCase(id))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException(id));
         list.remove(objToReturn);
-        updateJson(resource);
+        updateJson();
     }
 
-    protected T updateSingle(T obj, String id, Resource resource) {
-        deleteSingle(id, resource);
-        createNew(obj, resource);
+    public T updateSingle(T obj, String id) {
+        deleteSingle(id);
+        createNew(obj);
         return obj;
     }
-
-
-    protected Object invokeGetMethod(T objOfMethod) {
-        return Arrays.stream(objOfMethod.getClass().getMethods())
-                .filter(method -> method.getName().contains("getId"))
-                .map(method -> {
-                    try {
-                        return method.invoke(objOfMethod);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                    return "";
-                })
-                .findFirst().get();
-    }
-
-    @SneakyThrows
-    protected void updateJson(Resource resource){
-        String updatedList = list.stream()
-                .map(t -> gson.toJson(t))
-                .collect(Collectors.joining(System.lineSeparator()));
-        Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
-    }
-
 
     protected PagedResponse<T> findPage(List<T> filteredList, Integer index, Integer limit) {
         List<T> pageContent;
@@ -119,11 +97,12 @@ public abstract class BaseService<T> {
         index = Optional.ofNullable(index).orElse(0);
         int start = index * limit;
         int end = start + limit;
+
         if (start > filteredList.size() || limit < 0 || start < 0) {
             if (start > filteredList.size() || start<0) {
-                throw new NotValidOffsetOrLimit("offset", index);
+                throw new BadRequestException("Offset "+index+" not valid");
             }
-            throw new NotValidOffsetOrLimit("limit", limit);
+            throw new BadRequestException("Limit "+limit+" can't be negative");
         } else if (end > filteredList.size()) {
             end = filteredList.size();
             pageContent = filteredList.subList(start, filteredList.size());
@@ -141,12 +120,36 @@ public abstract class BaseService<T> {
                 .build();
     }
 
+    private Object invokeGetMethod(T objOfMethod) {
+        return Arrays.stream(objOfMethod.getClass().getMethods())
+                .filter(method -> method.getName().contains(getterMethodOfPrimaryKey))
+                .map(method -> {
+                    try {
+                        return method.invoke(objOfMethod);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                    throw new NotFoundException("invokeGetMethod doesn't have getterMethodOfPrimaryKey");
+                })
+                .findFirst()
+                .orElseThrow(()-> new NotFoundException("Primary key is null"));
+    }
 
-    protected Integer handleLimit(Integer limit) {
+    public void updateJson(){
+        String updatedList = list.stream()
+                .map(t -> gson.toJson(t))
+                .collect(Collectors.joining(System.lineSeparator()));
+        try {
+            Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Integer handleLimit(Integer limit) {
         limit = Optional.ofNullable(limit)
                 .filter(l -> l <= config.getMaxPageLimit())
                 .orElse(config.getDefaultPageLimit());
-
         if (limit > list.size()) {
             limit = list.size();
         }

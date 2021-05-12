@@ -26,11 +26,11 @@ public class RouteController {
             @ApiResponse(responseCode = "201", description = "Created",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Route"))}),
-            @ApiResponse(responseCode = "409", description = "Already exists a route with id in body")})
+            @ApiResponse(responseCode = "409", description = "Already exists a route with id in body", content = @Content)})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Route createRoute(@RequestBody Route route) {
-        return routeService.createRoute(route);
+        return routeService.createNew(route);
     }
 
     @Operation(summary = "Get routes list with optional filters")
@@ -38,7 +38,7 @@ public class RouteController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = PagedResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad request")})
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content)})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public PagedResponse<Route> findTrainPage(@RequestParam(required = false) String destinationStationName,
@@ -56,11 +56,11 @@ public class RouteController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Route"))}),
-            @ApiResponse(responseCode = "404", description = "No route to get")})
+            @ApiResponse(responseCode = "404", description = "No route to get", content = @Content)})
     @GetMapping("/{routeId}")
     @ResponseStatus(HttpStatus.OK)
     public Route getSingleRoute(@PathVariable("routeId") String routeId){
-        return routeService.getSingleRoute(routeId);
+        return routeService.getSingle(routeId);
     }
 
     @Operation(summary = "Update an existing route")
@@ -68,12 +68,12 @@ public class RouteController {
             @ApiResponse(responseCode = "200", description = "Route successfully updated",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Route"))}),
-            @ApiResponse(responseCode = "404", description = "No route to update")})
+            @ApiResponse(responseCode = "404", description = "No route to update", content = @Content)})
     @PutMapping("/{routeId}")
     @ResponseStatus(HttpStatus.OK)
     public Route updateSingleTrain(@PathVariable("routeId") String routeId,
                                    @RequestBody Route route){
-        return routeService.updateSingleRoute(routeId, route);
+        return routeService.updateSingle(route, routeId);
     }
 
     @Operation(summary = "Delete an existing route")

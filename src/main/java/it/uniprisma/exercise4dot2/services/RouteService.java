@@ -4,25 +4,20 @@ import com.google.gson.Gson;
 import it.uniprisma.exercise4dot2.components.ConfigurationComponent;
 import it.uniprisma.exercise4dot2.models.PagedResponse;
 import it.uniprisma.exercise4dot2.models.Route;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Service
-@Slf4j
 public class RouteService extends BaseService<Route>{
-    public static Resource routeResource;
     private TrainService trainService;
 
     public RouteService(ConfigurationComponent configurationComponent,
                         Gson gson) {
         super.config = configurationComponent;
         super.gson = gson;
+        super.getterMethodOfPrimaryKey = "getId";
     }
 
     @Autowired
@@ -30,18 +25,14 @@ public class RouteService extends BaseService<Route>{
         this.trainService = trainService;
     }
 
-    @SneakyThrows
     @PostConstruct
     private void initRoute() {
-        routeResource = init(Route.class, "/route.json");
+        init(Route.class, "/route.json");
     }
 
 
-    public Route createRoute(Route route) {
-        return createNew(route, routeResource);
-    }
-
-    public PagedResponse<Route> findRoutesPage(String stationName, String destinationStationName, String startStationName, double minimumLength, double maxLength, Integer offset, Integer limit) {
+    public PagedResponse<Route> findRoutesPage(String stationName, String destinationStationName, String startStationName,
+                                               double minimumLength, double maxLength, Integer offset, Integer limit) {
         List<Route> filtredList = list.stream()
                 .filter(r -> {
                     if (stationName != null) return r.getStartStationName().equalsIgnoreCase(stationName) ||
@@ -68,16 +59,9 @@ public class RouteService extends BaseService<Route>{
         return findPage(filtredList, offset, limit);
     }
 
-    public Route getSingleRoute(String routeId) {
-        return getSingle(routeId);
-    }
-
-    public Route updateSingleRoute(String routeId, Route route) {
-        return updateSingle(route, routeId, routeResource);
-    }
-
-    @SneakyThrows
     public void deleteRoute(String routeId) {
-        deleteSingle(routeId, routeResource);
+        trainService.list
+                .forEach(t->t.getRoutesId().remove(routeId));
+        deleteSingle(routeId);
     }
 }

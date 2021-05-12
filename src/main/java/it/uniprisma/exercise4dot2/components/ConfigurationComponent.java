@@ -11,4 +11,5 @@ public class ConfigurationComponent {
     private Integer defaultPageLimit;
     private Integer maxPageLimit;
     private String dataPath;
+
 }

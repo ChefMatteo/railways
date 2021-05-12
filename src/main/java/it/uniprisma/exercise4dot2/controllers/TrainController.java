@@ -34,19 +34,18 @@ public class TrainController {
             @ApiResponse(responseCode = "201", description = "Created",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Train"))}),
-            @ApiResponse(responseCode = "409", description = "Already exists a train with id in body")})
+            @ApiResponse(responseCode = "409", description = "Already exists a train with id in body", content = @Content)})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Train createTrain(@RequestBody Train train) {
-        return trainService.createSingleTrain(train);
+        return trainService.createNew(train);
     }
 
     @Operation(summary = "Get trains list with optional filters")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = PagedResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad request")})
+                            schema = @Schema(implementation = PagedResponse.class))})})
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public PagedResponse<Train> findTrainPage(@RequestParam(required = false) String companyName,
@@ -61,11 +60,11 @@ public class TrainController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Train"))}),
-            @ApiResponse(responseCode = "404", description = "No train to get")})
+            @ApiResponse(responseCode = "404", description = "No train to get", content = @Content)})
     @GetMapping("/{trainId}")
     @ResponseStatus(HttpStatus.OK)
     public Train getSingleTrain(@PathVariable("trainId") String trainId ){
-        return trainService.getSingleTrain(trainId);
+        return trainService.getSingle(trainId);
     }
 
     @Operation(summary = "Update an existing train")
@@ -73,12 +72,12 @@ public class TrainController {
             @ApiResponse(responseCode = "200", description = "Train successfully updated",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "Train"))}),
-            @ApiResponse(responseCode = "404", description = "No train to update")})
+            @ApiResponse(responseCode = "404", description = "No train to update", content = @Content)})
     @PutMapping("/{trainId}")
     @ResponseStatus(HttpStatus.OK)
     public Train updateSingleTrain(@PathVariable("trainId") String trainId,
                                    @RequestBody Train train){
-        return trainService.updateSingleTrain(trainId, train);
+        return trainService.updateSingle(train, trainId);
     }
 
     @Operation(summary = "Delete an existing train")
@@ -96,7 +95,7 @@ public class TrainController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = PagedResponse.class))}),
-            @ApiResponse(responseCode = "404", description = "No train to get")})
+            @ApiResponse(responseCode = "404", description = "No train to get", content = @Content)})
     @GetMapping("/{trainId}/wagons")
     @ResponseStatus(HttpStatus.OK)
     public PagedResponse<Wagon> findWagonsOfTrainPage(@PathVariable("trainId") String trainId,
@@ -120,7 +119,7 @@ public class TrainController {
             @ApiResponse(responseCode = "200", description = "Successful operation",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = PagedResponse.class))}),
-            @ApiResponse(responseCode = "404", description = "No train to get")})
+            @ApiResponse(responseCode = "404", description = "No train to get", content = @Content)})
     @GetMapping("/{trainId}/routes")
     @ResponseStatus(HttpStatus.OK)
     public PagedResponse<Route> findWagonsOfTrainPage(@PathVariable("trainId") String trainId,
@@ -138,7 +137,7 @@ public class TrainController {
             @ApiResponse(responseCode = "201", description = "Created",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "TrainRouteAssociation"))}),
-            @ApiResponse(responseCode = "409", description = "Already exists an association between ids in path")})
+            @ApiResponse(responseCode = "409", description = "Already exists an association between ids in path", content = @Content)})
     @PostMapping("/{trainId}/routes/{routeId}")
     @ResponseStatus(HttpStatus.CREATED)
     public void createTrainRouteAssociation(@PathVariable("trainId") String trainId, @PathVariable("routeId") String routeId) {
@@ -160,7 +159,7 @@ public class TrainController {
             @ApiResponse(responseCode = "201", description = "Created",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(type = "object", ref = "TrainRouteAssociation"))}),
-            @ApiResponse(responseCode = "409", description = "Already exists an association between ids in path")})
+            @ApiResponse(responseCode = "409", description = "Already exists an association between ids in path", content = @Content)})
     @PostMapping("/{trainId}/wagon/{wagonId}")
     @ResponseStatus(HttpStatus.CREATED)
     public void createTrainWagonAssociation(@PathVariable("trainId") String trainId, @PathVariable("wagonId") String wagonId) {
