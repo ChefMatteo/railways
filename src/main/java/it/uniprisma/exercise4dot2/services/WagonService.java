@@ -34,6 +34,7 @@ public class WagonService extends BaseService<Wagon>{
 
     @PostConstruct
     private void initWagon() {
+        nameOfClass=Wagon.class.getName();
         try {
             if (!Files.exists(Paths.get(config.getDataPath()))) {
                 Files.createDirectory(Paths.get(config.getDataPath()));
@@ -52,7 +53,7 @@ public class WagonService extends BaseService<Wagon>{
                 });
             }
         } catch (IOException e) {
-            log.error("Error reading structures file with cause: {}", e.getMessage());
+            log.error("Error in init of "+Wagon.class.getName());
         }
     }
 

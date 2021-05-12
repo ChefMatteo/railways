@@ -30,9 +30,11 @@ public abstract class BaseService<T> {
     protected Gson gson;
     protected static Resource resource;
     protected String getterMethodOfPrimaryKey;
+    protected String nameOfClass;
 
 
     protected void init(Type obj, String pathFile) {
+        nameOfClass=obj.getClass().getName();
         try {
             if (!Files.exists(Paths.get(config.getDataPath()))) {
                 Files.createDirectory(Paths.get(config.getDataPath()));
@@ -47,8 +49,7 @@ public abstract class BaseService<T> {
 
             }
         } catch (IOException e) {
-            log.error("Error reading structures file with cause: {}", e.getMessage());
-            e.printStackTrace();
+            log.error("Error in init of "+nameOfClass+" with cause: {}", e.getMessage());
         }
     }
 
@@ -60,7 +61,7 @@ public abstract class BaseService<T> {
             try {
                 Files.writeString(resource.getFile().toPath(), gson.toJson(obj).concat(System.lineSeparator()), StandardOpenOption.APPEND);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Error in createNew of "+nameOfClass+" with cause: {}", e.getMessage());
             }
             return obj;
         }
@@ -127,7 +128,7 @@ public abstract class BaseService<T> {
                     try {
                         return method.invoke(objOfMethod);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
+                        log.error("Error in invokeGetMethod of "+nameOfClass+" with cause: {}", e.getMessage());
                     }
                     throw new NotFoundException("invokeGetMethod doesn't have getterMethodOfPrimaryKey");
                 })
@@ -142,7 +143,7 @@ public abstract class BaseService<T> {
         try {
             Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error in updateJson of "+nameOfClass+" with cause: {}", e.getMessage());
         }
     }
 
