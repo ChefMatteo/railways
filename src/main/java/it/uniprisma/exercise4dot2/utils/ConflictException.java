@@ -10,6 +10,6 @@ public class ConflictException extends RuntimeException {
 
     public ConflictException(String attr, String value) {
         super(String.format("Resource already exists with %s = %s", attr, value));
-        log.info("Resource already exists with {} = {}", attr, value);
+        log.error("Resource already exists with {} = {}", attr, value);
     }
 }

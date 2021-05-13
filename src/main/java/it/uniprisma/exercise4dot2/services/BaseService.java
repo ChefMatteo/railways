@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +27,7 @@ public abstract class BaseService<T> {
     protected ConfigurationComponent config;
     protected List<T> list = new ArrayList<>();
     protected Gson gson;
-    protected static Resource resource;
+    protected Resource resource;
     protected String getterMethodOfPrimaryKey;
     protected String nameOfClass;
 
@@ -40,29 +39,30 @@ public abstract class BaseService<T> {
                 Files.createDirectory(Paths.get(config.getDataPath()));
             }
             File file = new File(config.getDataPath() + pathFile);
-            file.createNewFile();
+            if(file.createNewFile()){
+                Files.writeString(file.toPath(), "[", StandardOpenOption.APPEND);
+            }
             ResourceLoader rl = new DefaultResourceLoader();
             resource = rl.getResource("file:" + config.getDataPath() + pathFile);
             if (resource.exists()) {
                 Stream<String> lines = Files.lines(resource.getFile().toPath());
-                lines.forEach(l -> list.add(gson.fromJson(l, obj)));
-
+                lines.forEach(l -> {
+                    l= l.replace("[{", "{");
+                    l= l.replace("},", "}");
+                    l= l.replace("}]", "}");
+                    list.add(gson.fromJson(l, obj));
+                });
             }
         } catch (IOException e) {
-            log.error("Error in init of "+nameOfClass+" with cause: {}", e.getMessage());
+            throw new BadRequestException(String.format("Error in init of "+nameOfClass+" with cause: (IOException) %s", e.getMessage()));
         }
     }
-
 
 
     public T createNew(T obj) {
         if (!list.contains(obj)) {
             list.add(obj);
-            try {
-                Files.writeString(resource.getFile().toPath(), gson.toJson(obj).concat(System.lineSeparator()), StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                log.error("Error in createNew of "+nameOfClass+" with cause: {}", e.getMessage());
-            }
+            updateJson();
             return obj;
         }
         throw new ConflictException("id", invokeGetMethod(obj).toString());
@@ -73,7 +73,7 @@ public abstract class BaseService<T> {
                 .filter(Objects::nonNull)
                 .filter(t -> invokeGetMethod(t).toString().equalsIgnoreCase(id))
                 .findFirst()
-                .orElseThrow(() -> new NotFoundException(id));
+                .orElse(null);
     }
 
     public void deleteSingle(String id) {
@@ -128,9 +128,8 @@ public abstract class BaseService<T> {
                     try {
                         return method.invoke(objOfMethod);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        log.error("Error in invokeGetMethod of "+nameOfClass+" with cause: {}", e.getMessage());
+                        throw new BadRequestException(String.format("Error in invokeGetMethod of "+nameOfClass+" with cause: (IllegalAccessException | InvocationTargetException) {}", e.getMessage()));
                     }
-                    throw new NotFoundException("invokeGetMethod doesn't have getterMethodOfPrimaryKey");
                 })
                 .findFirst()
                 .orElseThrow(()-> new NotFoundException("Primary key is null"));
@@ -139,11 +138,11 @@ public abstract class BaseService<T> {
     public void updateJson(){
         String updatedList = list.stream()
                 .map(t -> gson.toJson(t))
-                .collect(Collectors.joining(System.lineSeparator()));
+                .collect(Collectors.joining(","+System.lineSeparator()));
         try {
-            Files.writeString(resource.getFile().toPath(), updatedList+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
+            Files.writeString(resource.getFile().toPath(), "["+updatedList+"]"+System.lineSeparator(), StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            log.error("Error in updateJson of "+nameOfClass+" with cause: {}", e.getMessage());
+            throw new BadRequestException(String.format("Error in updateJson of "+nameOfClass+" with cause: (IOException) {}", e.getMessage()));
         }
     }
 

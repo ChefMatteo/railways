@@ -79,8 +79,8 @@ public class WagonController {
     @PutMapping("/{wagonId}")
     @ResponseStatus(HttpStatus.OK)
     public Wagon updateSingleWagon(@PathVariable("wagonId") String wagonId,
-                                   @RequestBody Wagon wagon){
-        return wagonService.updateSingle(wagon, wagonId);
+                                   @RequestBody AllOfWagon wagon){
+        return wagonService.updateSingleWagon(wagon, wagonId);
     }
 
     @Operation(summary = "Delete an existing wagon")

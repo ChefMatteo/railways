@@ -63,7 +63,10 @@ public class TrainService extends BaseService<Train> {
 
 
     public void deleteTrain(String trainId) {
-        deleteTrainRouteAssociation(Collections.singletonList(trainId), getSingle(trainId).getRoutesId());
+        if(getSingle(trainId).getRoutesId()!= null &&
+            routeService.list.stream().map(Route::getId).anyMatch(rId->getSingle(trainId).getRoutesId().contains(rId))) {
+            deleteTrainRouteAssociation(Collections.singletonList(trainId), getSingle(trainId).getRoutesId());
+        }
         deleteSingle(trainId);
     }
 

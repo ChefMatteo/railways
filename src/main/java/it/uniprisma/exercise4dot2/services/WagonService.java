@@ -46,6 +46,9 @@ public class WagonService extends BaseService<Wagon>{
             if (resource.exists()) {
                 Stream<String> lines = Files.lines(resource.getFile().toPath());
                 lines.forEach(l -> {
+                    l= l.replace("[{", "{");
+                    l= l.replace("},", "}");
+                    l= l.replace("}]", "}");
                     if (l.contains("MOTOR")) list.add(gson.fromJson(l, MotorWagon.class));
                     else if (l.contains("PASSENGER")) list.add(gson.fromJson(l, PassengerWagon.class));
                     else if (l.contains("BED")) list.add(gson.fromJson(l, BedWagon.class));
@@ -75,6 +78,11 @@ public class WagonService extends BaseService<Wagon>{
             }
         }
         throw new BadRequestException("wagonType can't be null");
+    }
+
+    public Wagon updateSingleWagon(AllOfWagon wagon, String wagonId){
+        deleteSingle(wagonId);
+        return createSingleWagon(wagon);
     }
 
     public PagedResponse<Wagon> findPage(Boolean bathroom, WagonClass wagonClass, Integer minimumTables, String kitchenType, FuelType fuelType,

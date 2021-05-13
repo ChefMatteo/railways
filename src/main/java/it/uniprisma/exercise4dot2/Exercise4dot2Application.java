@@ -15,7 +15,7 @@ public class Exercise4dot2Application {
 
 
 	@Bean
-	public Gson gson() {
+	public static Gson gson() {
 		return new Gson();
 	}
 
